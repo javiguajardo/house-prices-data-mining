@@ -20,8 +20,18 @@ def replace_missing_values_with_mean(data):
 
     return data
 
+def remove_rows(data, column):
+    data = data.dropna(subset=[column], inplace=True)
+    return data
+
+def remove_columns(data, column):
+    data = data.drop(column, axis=1, inplace=True)
+    return data
+
 if __name__ == '__main__':
     data = open_file('../resources/train.csv')
-    replace_missing_values_with_mode(data)
-    replace_missing_values_with_mean(data)
+    #replace_missing_values_with_mode(data)
+    #replace_missing_values_with_mean(data)
+    #remove_rows(data, 'GarageYrBlt')
+    #remove_columns(data, 'PoolQC')
     print(data[:10])
