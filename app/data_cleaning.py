@@ -113,15 +113,15 @@ def attribute_subset_selection_with_trees(data):
     target = data[[num_features]]
 
     # First 10 rows
-    print('Training Data:\n\n' + str(X[:10]))
+    print('Training Data:\n\n' + str(features[:10]))
     print('\n')
-    print('Targets:\n\n' + str(Y[:10]))
+    print('Targets:\n\n' + str(target[:10]))
 
     # Model declaration
     extra_tree = ExtraTreesClassifier()
 
     # Model training
-    extra_tree.fit(X, Y.values.ravel())
+    extra_tree.fit(features, target.values.ravel())
 
     # Model information:
     print('\nModel information:\n')
@@ -133,7 +133,7 @@ def attribute_subset_selection_with_trees(data):
     model = SelectFromModel(extra_tree, prefit = True)
 
     # Model transformation
-    new_feature_vector = model.transform(X)
+    new_feature_vector = model.transform(features)
 
     # First 10 rows of new feature vector
     print('\nNew feature vector:\n')
@@ -181,25 +181,33 @@ def z_score_normalization(data):
 
 def min_max_scaler(data):
     # import data
-    X = data[list(range(0, 12))]
-    Y = data[[12]]
+    num_features = len(data.columns) - 1
+
+    cols = data.columns
+    num_cols = data._get_numeric_data().columns
+    nominal_cols = list(set(cols) - set(num_cols))
+
+    data[nominal_cols] = convert_data_to_numeric(data[nominal_cols])
+
+    features = data[list(range(0, num_features))]
+    target = data[[num_features]]
 
     # First 10 rows
-    print('Training Data:\n\n' + str(X[:10]))
+    print('Training Data:\n\n' + str(features[:10]))
     print('\n')
-    print('Targets:\n\n' + str(Y[:10]))
+    print('Targets:\n\n' + str(target[:10]))
 
     # Data normalization
     min_max_scaler = preprocessing.MinMaxScaler()
 
-    min_max_scaler.fit(X)
+    min_max_scaler.fit(features)
 
     # Model information:
     print('\nModel information:\n')
     print('Data min: ' + str(min_max_scaler.data_min_))
     print('Data max: ' + str(min_max_scaler.data_max_))
 
-    new_feature_vector = min_max_scaler.transform(X)
+    new_feature_vector = min_max_scaler.transform(features)
 
     # First 10 rows of new feature vector
     print('\nNew feature vector:\n')
@@ -227,6 +235,8 @@ if __name__ == '__main__':
     replace_missing_values_with_mode(data, ['MasVnrType', 'Electrical', 'GarageCond', 'HeatingQC'])
     replace_missing_values_with_mean(data, ['LotFrontage', 'MasVnrArea'])
     replace_missing_values_with_constant(data)
+    min_max_scaler(data)
     #write_file(data, '../resources/output.csv')
     #z_score_normalization(data)
-    principal_components_analysis(data, 40)
+    #principal_components_analysis(data, 10)
+    #attribute_subset_selection_with_trees(data)
