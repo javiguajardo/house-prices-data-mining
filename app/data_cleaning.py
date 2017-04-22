@@ -48,12 +48,23 @@ def replace_missing_values_with_constant(data):
 
     data['Fence'] = data['Fence'].fillna('NOFENCE')
     data['MiscFeature'] = data['MiscFeature'].fillna('NOMISC')
+    data['PoolQC'] = data['PoolQC'].fillna('NOPOOL')
 
     return data
 
 def replace_outliers(data):
     data.loc[data['Utilities'] == 'NoSeWa', 'Utilities'] = 'AllPub'
     data.loc[data['HeatingQC'] == 'Po', 'HeatingQC'] = data['HeatingQC'].mode()
+    return data
+
+def remove_outliers(data, feature, outlier_value):
+    outliers = data.loc[data[feature] >= outlier_value, feature].index
+    for o in outliers:
+        data.drop(data.index[o], inplace=True)
+    return data
+
+def replace_garageyr_missing_values(data):
+    data['GarageYrBlt'] = data['GarageYrBlt'].fillna(data['YearBuilt'])
     return data
 
 def drop_useless_features(data):
@@ -255,17 +266,22 @@ def replace_sf_columns(data):
     return data
 
 if __name__ == '__main__':
-    data = open_file('../resources/training_data.csv')
-    replace_outliers(data)
-    remove_rows(data, 'GarageYrBlt')
+    data = open_file('../resources/train.csv')
+    #replace_outliers(data)
+    remove_outliers(data, 'BsmtFinSF1', 5600)
+    remove_outliers(data, 'MiscVal', 15000)
+    remove_outliers(data, 'BsmtFinSF2', 1400)
+    remove_outliers(data, 'EnclosedPorch', 550)
+    #remove_rows(data, 'GarageYrBlt')
     #remove_columns(data, 'PoolQC')
-    replace_sf_columns(data)
-    replace_missing_values_with_mode(data, ['MasVnrType', 'Electrical', 'GarageCond', 'HeatingQC'])
-    replace_missing_values_with_mean(data, ['LotFrontage', 'MasVnrArea'])
-    replace_missing_values_with_constant(data)
-    drop_useless_features(data)
-    data = principal_components_analysis(data, 30)
-    data = z_score_normalization(data)
+    #replace_sf_columns(data)
+    #replace_missing_values_with_mode(data, ['MasVnrType', 'Electrical', 'GarageCond', 'HeatingQC'])
+    #replace_missing_values_with_mean(data, ['LotFrontage', 'MasVnrArea'])
+    #replace_missing_values_with_constant(data)
+    #drop_useless_features(data)
+    #z_score_normalization(data)
+    #replace_garageyr_missing_values(data)
+    #principal_components_analysis(data, 30)
     #attribute_subset_selection_with_trees(data)
     #min_max_scaler(data)
     write_file(data, '../resources/output.csv')

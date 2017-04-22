@@ -29,9 +29,14 @@ def count_nans_in_row(data, column):
     print(null_subset[:10])
     print(not_null_data[:10])
 
+def boxplot_graph(data, feature):
+    ax = sns.boxplot(data[feature]);
+    plt.show()
+
 
 if __name__ == '__main__':
-    data = open_file('../resources/train.csv')
-    describe_columns(data)
+    data = open_file('../resources/output.csv')
+    #describe_columns(data)
+    #boxplot_graph(data, 'MiscVal')
     #calc_var(data)
     #count_nans_in_row(data, 'GarageYrBlt')
