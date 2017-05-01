@@ -32,6 +32,8 @@ def decision_tree(data):
     features = data[list(range(1, num_features))]
     target = data[[num_features]]
 
+    print(features)
+    print(target)
     data_features_train, data_features_test, data_targets_train, data_targets_test = \
         train_test_split(features,
                          target,
@@ -43,7 +45,7 @@ def decision_tree(data):
     criterion: "mse"
     max_depth: maximum depth of tree, default: None
     """
-    dec_tree_reg = DecisionTreeRegressor(criterion='mse', max_depth=3)
+    dec_tree_reg = DecisionTreeRegressor(criterion='mse', max_depth=5)
     dec_tree_reg.fit(data_features_train, data_targets_train)
 
     # Model evaluation

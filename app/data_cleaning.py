@@ -59,8 +59,7 @@ def replace_outliers(data):
 
 def remove_outliers(data, feature, outlier_value):
     outliers = data.loc[data[feature] >= outlier_value, feature].index
-    for o in outliers:
-        data.drop(data.index[o], inplace=True)
+    data.drop(outliers, inplace=True)
     return data
 
 def replace_garageyr_missing_values(data):
@@ -108,6 +107,7 @@ def principal_components_analysis(data, n_components):
     print('\nModel information:\n')
     print('Number of components elected: ' + str(pca.n_components))
     print('New feature dimension: ' + str(pca.n_components_))
+    print('Variance sum: ' + str(sum(pca.explained_variance_ratio_)))
     print('Variance of every feature: ' + str(pca.explained_variance_ratio_))
 
     # First 10 rows of new feature vector
@@ -115,7 +115,11 @@ def principal_components_analysis(data, n_components):
     print(new_feature_vector[:10])
     print('\n\n')
 
-    return new_feature_vector
+    new_data = np.append(new_feature_vector, target.values, axis=1)
+    print('\nNew array\n')
+    print(new_data)
+
+    return new_data
 
 def attribute_subset_selection_with_trees(data):
     # import data
@@ -136,7 +140,7 @@ def attribute_subset_selection_with_trees(data):
     print('Targets:\n\n' + str(target[:10]))
 
     # Model declaration
-    extra_tree = ExtraTreesClassifier()
+    extra_tree = ExtraTreesClassifier(n_estimators=100, max_features=40, max_depth = 5)
 
     # Model training
     extra_tree.fit(features, target.values.ravel())
@@ -175,6 +179,12 @@ def attribute_subset_selection_with_trees(data):
     plt.xlim([-1, features.shape[1]])
     plt.show()
 
+    new_data = np.append(new_feature_vector, target.values, axis=1)
+    print('\nNew array\n')
+    print(new_data)
+
+    return new_data
+
 def convert_data_to_numeric(data):
     numpy_data = data.values
 
@@ -191,6 +201,42 @@ def convert_data_to_numeric(data):
     return numpy_data
 
 def z_score_normalization(data):
+    # import data
+    """num_features = len(data.columns) - 1
+
+    cols = data.columns
+    num_cols = data._get_numeric_data().columns
+    nominal_cols = list(set(cols) - set(num_cols))
+
+    data[nominal_cols] = convert_data_to_numeric(data[nominal_cols])
+
+    features = data[list(range(1, num_features))]
+    target = data[[num_features]]"""
+
+    features = data[:,0:-1]
+    target = data[:,-1]
+
+    # First 10 rows
+    print('Training Data:\n\n' + str(features[:10]))
+    print('\n')
+    print('Targets:\n\n' + str(target[:10]))
+
+
+    # Data standarization
+    standardized_data = preprocessing.scale(features)
+
+    # First 10 rows of new feature vector
+    print('\nNew feature vector:\n')
+    print(standardized_data[:10])
+    print('\n\n')
+
+    new_data = np.append(standardized_data, target.reshape(target.shape[0], -1), axis=1)
+    print('\nNew array\n')
+    print(new_data)
+
+    return new_data
+
+def min_max_scaler(data):
     """# import data
     num_features = len(data.columns) - 1
 
@@ -201,35 +247,10 @@ def z_score_normalization(data):
     data[nominal_cols] = convert_data_to_numeric(data[nominal_cols])
 
     features = data[list(range(1, num_features))]
-    target = data[[num_features]]
+    target = data[[num_features]]"""
 
-    # First 10 rows
-    print('Training Data:\n\n' + str(features[:10]))
-    print('\n')
-    print('Targets:\n\n' + str(target[:10]))"""
-
-    # Data standarization
-    standardized_data = preprocessing.scale(data)
-
-    # First 10 rows of new feature vector
-    print('\nNew feature vector:\n')
-    print(standardized_data[:10])
-    print('\n\n')
-
-    return standardized_data
-
-def min_max_scaler(data):
-    # import data
-    num_features = len(data.columns) - 1
-
-    cols = data.columns
-    num_cols = data._get_numeric_data().columns
-    nominal_cols = list(set(cols) - set(num_cols))
-
-    data[nominal_cols] = convert_data_to_numeric(data[nominal_cols])
-
-    features = data[list(range(1, num_features))]
-    target = data[[num_features]]
+    features = data[:,0:-1]
+    target = data[:,-1]
 
     # First 10 rows
     print('Training Data:\n\n' + str(features[:10]))
@@ -252,6 +273,12 @@ def min_max_scaler(data):
     print('\nNew feature vector:\n')
     print(new_feature_vector[:10])
 
+    new_data = np.append(new_feature_vector, target.reshape(target.shape[0], -1), axis=1)
+    print('\nNew array\n')
+    print(new_data)
+
+    return new_data
+
 def remove_rows(data, column):
     data = data.dropna(subset=[column], inplace=True)
     return data
@@ -265,23 +292,48 @@ def replace_sf_columns(data):
     data.drop(['TotalBsmtSF', '1stFlrSF', '2ndFlrSF'], axis=1, inplace=True)
     return data
 
-if __name__ == '__main__':
-    data = open_file('../resources/train.csv')
-    #replace_outliers(data)
+def data_cleaning_3(data):
     remove_outliers(data, 'BsmtFinSF1', 5600)
     remove_outliers(data, 'MiscVal', 15000)
     remove_outliers(data, 'BsmtFinSF2', 1400)
     remove_outliers(data, 'EnclosedPorch', 550)
+    remove_outliers(data, 'LotFrontage', 300)
+    remove_outliers(data, 'LotArea', 60000)
+    remove_outliers(data, 'MasVnrArea', 1200)
+    remove_outliers(data, 'TotalBsmtSF', 3000)
+    replace_sf_columns(data)
+    replace_missing_values_with_mode(data, ['MasVnrType', 'Electrical', 'GarageCond', 'HeatingQC'])
+    replace_missing_values_with_mean(data, ['LotFrontage', 'MasVnrArea'])
+    replace_missing_values_with_constant(data)
+    replace_garageyr_missing_values(data)
+    data = attribute_subset_selection_with_trees(data)
+    #data = principal_components_analysis(data, 5)
+    data = z_score_normalization(data)
+    #data = min_max_scaler(data)
+
+
+if __name__ == '__main__':
+    data = open_file('../resources/training_data.csv')
+    #replace_outliers(data)
+    #remove_outliers(data, 'BsmtFinSF1', 5600)
+    #remove_outliers(data, 'MiscVal', 15000)
+    #remove_outliers(data, 'BsmtFinSF2', 1400)
+    #remove_outliers(data, 'EnclosedPorch', 550)
+    #remove_outliers(data, 'LotFrontage', 300)
+    #remove_outliers(data, 'LotArea', 60000)
+    #remove_outliers(data, 'MasVnrArea', 1200)
+    #remove_outliers(data, 'TotalBsmtSF', 3000)
     #remove_rows(data, 'GarageYrBlt')
     #remove_columns(data, 'PoolQC')
     #replace_sf_columns(data)
     #replace_missing_values_with_mode(data, ['MasVnrType', 'Electrical', 'GarageCond', 'HeatingQC'])
     #replace_missing_values_with_mean(data, ['LotFrontage', 'MasVnrArea'])
     #replace_missing_values_with_constant(data)
-    #drop_useless_features(data)
-    #z_score_normalization(data)
     #replace_garageyr_missing_values(data)
-    #principal_components_analysis(data, 30)
-    #attribute_subset_selection_with_trees(data)
-    #min_max_scaler(data)
+    #drop_useless_features(data)
+    #data = attribute_subset_selection_with_trees(data)
+    #data = principal_components_analysis(data, 5)
+    #data = z_score_normalization(data)
+    #data = min_max_scaler(data)
+    data_cleaning_3(data)
     write_file(data, '../resources/output.csv')

@@ -35,8 +35,8 @@ def boxplot_graph(data, feature):
 
 
 if __name__ == '__main__':
-    data = open_file('../resources/output.csv')
+    data = open_file('../resources/training_data.csv')
     #describe_columns(data)
-    #boxplot_graph(data, 'MiscVal')
+    boxplot_graph(data, '1stFlrSF')
     #calc_var(data)
     #count_nans_in_row(data, 'GarageYrBlt')
